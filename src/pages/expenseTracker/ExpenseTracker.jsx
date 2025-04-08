@@ -58,9 +58,9 @@ const ExpenseTracker = () => {
       />
 
       <div className="min-h-screen bg-gray-100 p-6">
-        <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto h-[calc(100vh-3rem)]">
+        <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto  md:h-[calc(100vh-3rem)]">
           {/* Left Section: Transactions */}
-          <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full overflow-y-auto">
+          <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 max-h-80 md:h-full overflow-y-auto order-2 md:order-1">
             <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
               Transactions History
             </h3>
@@ -106,7 +106,7 @@ const ExpenseTracker = () => {
           </div>
 
           {/* Right Section: Form */}
-          <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full flex flex-col">
+          <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full flex flex-col order-1 md:order-2">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">

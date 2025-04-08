@@ -9,7 +9,6 @@ const Auth = () => {
   const signInWithGoogle = async () => {
     try {
       const results = await signInWithPopup(auth, provider);
-      console.log(results);
 
       const authInfo = {
         userId: results.user.uid,
