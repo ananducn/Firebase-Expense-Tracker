@@ -6,21 +6,22 @@ import { useGetTransaction } from "../../hooks/useGetTransaction";
 import { useGetUserInfo } from "../../hooks/useGetUserInfo";
 import { signOut } from "firebase/auth";
 import { auth } from "../../config/firebase-config";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ExpenseTracker = () => {
   const { addTransaction } = useAddTransactions();
   const [description, setDescription] = useState("");
   const [transactionAmount, setTransactionAmount] = useState("");
   const [transactionType, setTransactionType] = useState("expense");
-  const { transactions } = useGetTransaction();
   const { name, profilePhoto } = useGetUserInfo();
-  const { isloggedIn } = useGetUserInfo();
   const navigate = useNavigate();
+  const month = new Date().toLocaleString("default", { month: "long" });
+  const [selectedMonth, setSelectedMonth] = useState(month);
+  const { transactions } = useGetTransaction(selectedMonth);
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    addTransaction({ description, transactionAmount, transactionType });
+    addTransaction({ description, transactionAmount, transactionType, month });
     setDescription("");
     setTransactionAmount("");
     setTransactionType("expense");
@@ -48,7 +49,6 @@ const ExpenseTracker = () => {
 
   const totalBalance = totalIncome - totalExpense;
 
- 
   return (
     <>
       <ToastContainer
@@ -59,7 +59,53 @@ const ExpenseTracker = () => {
 
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto h-[calc(100vh-3rem)]">
-          {/* Left Section */}
+          {/* Left Section: Transactions */}
+          <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full overflow-y-auto">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+              Transactions History
+            </h3>
+
+            {transactions.length === 0 ? (
+              <p className="text-gray-500 text-center">No transactions yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {transactions.map((transaction, index) => {
+                  const { description, transactionAmount, transactionType } =
+                    transaction;
+                  return (
+                    <li
+                      key={index}
+                      className={`flex justify-between items-center p-4 rounded-xl shadow-sm ${
+                        transactionType === "income"
+                          ? "bg-green-50"
+                          : "bg-red-50"
+                      }`}
+                    >
+                      <div>
+                        <h4 className="font-semibold text-gray-800">
+                          {description}
+                        </h4>
+                        <p className="text-sm text-gray-600 capitalize">
+                          {transactionType}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-lg font-bold ${
+                          transactionType === "income"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        ₹{transactionAmount}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Right Section: Form */}
           <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
@@ -82,14 +128,45 @@ const ExpenseTracker = () => {
             </div>
 
             {/* Balance */}
-            <div className="mb-8 text-center">
+            <div className="mb-6 text-center">
               <h3 className="text-lg text-gray-600">Your Balance</h3>
               <h2 className="text-2xl font-semibold text-green-600">
                 ₹{totalBalance}
               </h2>
             </div>
 
-            {/* Income & Expense */}
+            {/* Month Selection */}
+            <div className="mb-6">
+              <label className="text-gray-700 font-medium mr-2">
+                Filter by Month:
+              </label>
+              <select
+                className="border border-gray-300 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+              >
+                {[
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ].map((month) => (
+                  <option key={month} value={month}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Income & Expense Summary */}
             <div className="grid grid-cols-2 gap-4 mb-10">
               <div className="bg-green-100 p-4 rounded-lg shadow-sm">
                 <h3 className="text-md font-medium text-green-800">Income</h3>
@@ -182,51 +259,6 @@ const ExpenseTracker = () => {
                 Add Transaction
               </button>
             </form>
-          </div>
-
-          {/* Right Section: Transactions */}
-          <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full overflow-y-auto">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-              Transactions History
-            </h3>
-            {transactions.length === 0 ? (
-              <p className="text-gray-500 text-center">No transactions yet.</p>
-            ) : (
-              <ul className="space-y-4">
-                {transactions.map((transaction, index) => {
-                  const { description, transactionAmount, transactionType } =
-                    transaction;
-                  return (
-                    <li
-                      key={index}
-                      className={`flex justify-between items-center p-4 rounded-xl shadow-sm ${
-                        transactionType === "income"
-                          ? "bg-green-50"
-                          : "bg-red-50"
-                      }`}
-                    >
-                      <div>
-                        <h4 className="font-semibold text-gray-800">
-                          {description}
-                        </h4>
-                        <p className="text-sm text-gray-600 capitalize">
-                          {transactionType}
-                        </p>
-                      </div>
-                      <span
-                        className={`text-lg font-bold ${
-                          transactionType === "income"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        ₹{transactionAmount}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
           </div>
         </div>
       </div>

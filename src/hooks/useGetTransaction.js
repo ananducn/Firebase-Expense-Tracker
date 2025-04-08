@@ -1,46 +1,39 @@
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, orderBy, where } from "firebase/firestore";
-import { query } from "firebase/firestore";
-
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  where,
+  query,
+} from "firebase/firestore";
 import { db } from "../config/firebase-config";
 import { useGetUserInfo } from "./useGetUserInfo";
 
-export const useGetTransaction = () => {
+export const useGetTransaction = (selectedMonth) => {
   const [transactions, setTransactions] = useState([]);
+  const { userId } = useGetUserInfo();
   const transactionCollectionRef = collection(db, "transactions");
 
-  const { userId } = useGetUserInfo();
-  let unsubscribe;
-  const getTransaction = async () => {
-    try {
-      const queryTransactions = query(
-        transactionCollectionRef,
-        where("userID", "==", userId),
-        orderBy("createdAt")
-      );
-
-      unsubscribe = onSnapshot(queryTransactions, (snapshot) => {
-        let docs = [];
-
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const id = doc.id;
-          docs.push({ ...data, id });
-        });
-
-        setTransactions(docs);
-      });
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
-    }
-    return () => {
-      unsubscribe();
-    };
-  };
-
   useEffect(() => {
-    getTransaction();
-  }, []);
+    if (!userId || !selectedMonth) return;
+
+    const queryTransactions = query(
+      transactionCollectionRef,
+      where("userID", "==", userId),
+      where("month", "==", selectedMonth),
+      orderBy("createdAt")
+    );
+
+    const unsubscribe = onSnapshot(queryTransactions, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setTransactions(docs);
+    });
+
+    return () => unsubscribe();
+  }, [userId, selectedMonth]);
 
   return { transactions };
 };
