@@ -61,14 +61,14 @@ const ExpenseTracker = () => {
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto md:h-[calc(100vh-3rem)]">
           {/* Left Section */}
-          <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 order-2  md:order-1 flex flex-col">
+          <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 order-2  lg:order-1 flex flex-col">
             {/* Chart on Top */}
             <div className="mb-6">
               <TransactionChart income={totalIncome} expense={totalExpense} />
             </div>
 
             {/* Transaction List (Scrollable) */}
-            <div className="flex-1 overflow-y-auto max-h-[300px] pr-2">
+            <div className="flex-1 overflow-y-auto max-h-[400px] pr-2">
               <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
                 Transactions History
               </h3>
@@ -116,22 +116,22 @@ const ExpenseTracker = () => {
           </div>
 
           {/* Right Section: Form and Summary */}
-          <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full flex flex-col order-1 md:order-2">
+          <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full flex flex-col order-1 lg:order-2">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
                 <img
                   src={profilePhoto}
                   alt="Profile"
-                  className="w-10 h-10 rounded-full object-cover"
+                  className=" w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
                 />
-                <h1 className="text-2xl font-bold text-blue-600">
+                <h1 className="text-lg md:text-2xl font-bold text-blue-600">
                   {name}'s Tracker 💰
                 </h1>
               </div>
               <button
                 onClick={signout}
-                className="text-sm bg-red-100 text-red-600 font-semibold px-4 py-2 rounded-lg hover:bg-red-200 transition duration-200"
+                className="text-xs md:text-sm bg-red-100 text-red-600 font-semibold px-2 py-1 md:px-4 md:py-2 rounded-lg hover:bg-red-200 transition duration-200"
               >
                 Sign Out
               </button>
