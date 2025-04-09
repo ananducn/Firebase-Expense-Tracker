@@ -7,6 +7,7 @@ import { useGetUserInfo } from "../../hooks/useGetUserInfo";
 import { signOut } from "firebase/auth";
 import { auth } from "../../config/firebase-config";
 import { useNavigate } from "react-router-dom";
+import TransactionChart from "../../components/TransactionChart";
 
 const ExpenseTracker = () => {
   const { addTransaction } = useAddTransactions();
@@ -58,54 +59,63 @@ const ExpenseTracker = () => {
       />
 
       <div className="min-h-screen bg-gray-100 p-6">
-        <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto  md:h-[calc(100vh-3rem)]">
-          {/* Left Section: Transactions */}
-          <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 max-h-80 md:min-h-full overflow-y-auto order-2 md:order-1">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-              Transactions History
-            </h3>
+        <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto md:h-[calc(100vh-3rem)]">
+          {/* Left Section */}
+          <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 order-2  md:order-1 flex flex-col">
+            {/* Chart on Top */}
+            <div className="mb-6">
+              <TransactionChart income={totalIncome} expense={totalExpense} />
+            </div>
 
-            {transactions.length === 0 ? (
-              <p className="text-gray-500 text-center">No transactions yet.</p>
-            ) : (
-              <ul className="space-y-4">
-                {transactions.map((transaction, index) => {
-                  const { description, transactionAmount, transactionType } =
-                    transaction;
-                  return (
-                    <li
-                      key={index}
-                      className={`flex justify-between items-center p-4 rounded-xl shadow-sm ${
-                        transactionType === "income"
-                          ? "bg-green-50"
-                          : "bg-red-50"
-                      }`}
-                    >
-                      <div>
-                        <h4 className="font-semibold text-gray-800">
-                          {description}
-                        </h4>
-                        <p className="text-sm text-gray-600 capitalize">
-                          {transactionType}
-                        </p>
-                      </div>
-                      <span
-                        className={`text-lg font-bold ${
+            {/* Transaction List (Scrollable) */}
+            <div className="flex-1 overflow-y-auto max-h-[300px] pr-2">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                Transactions History
+              </h3>
+              {transactions.length === 0 ? (
+                <p className="text-gray-500 text-center">
+                  No transactions yet.
+                </p>
+              ) : (
+                <ul className="space-y-4">
+                  {transactions.map((transaction, index) => {
+                    const { description, transactionAmount, transactionType } =
+                      transaction;
+                    return (
+                      <li
+                        key={index}
+                        className={`flex justify-between items-center p-4 rounded-xl shadow-sm ${
                           transactionType === "income"
-                            ? "text-green-600"
-                            : "text-red-600"
+                            ? "bg-green-50"
+                            : "bg-red-50"
                         }`}
                       >
-                        ₹{transactionAmount}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+                        <div>
+                          <h4 className="font-semibold text-gray-800">
+                            {description}
+                          </h4>
+                          <p className="text-sm text-gray-600 capitalize">
+                            {transactionType}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-lg font-bold ${
+                            transactionType === "income"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          ₹{transactionAmount}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
 
-          {/* Right Section: Form */}
+          {/* Right Section: Form and Summary */}
           <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full flex flex-col order-1 md:order-2">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
@@ -166,7 +176,7 @@ const ExpenseTracker = () => {
               </select>
             </div>
 
-            {/* Income & Expense Summary */}
+            {/* Summary */}
             <div className="grid grid-cols-2 gap-4 mb-10">
               <div className="bg-green-100 p-4 rounded-lg shadow-sm">
                 <h3 className="text-md font-medium text-green-800">Income</h3>
@@ -226,7 +236,6 @@ const ExpenseTracker = () => {
                     id="expense"
                     name="type"
                     value="expense"
-                    required
                     checked={transactionType === "expense"}
                     className="mr-2"
                     onChange={(e) => setTransactionType(e.target.value)}
@@ -241,7 +250,6 @@ const ExpenseTracker = () => {
                     id="income"
                     name="type"
                     value="income"
-                    required
                     checked={transactionType === "income"}
                     className="mr-2"
                     onChange={(e) => setTransactionType(e.target.value)}
