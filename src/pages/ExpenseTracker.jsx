@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { useAddTransactions } from "../../hooks/useAddTransactions";
+import { useAddTransactions } from "../hooks/useAddTransactions";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useGetTransaction } from "../../hooks/useGetTransaction";
-import { useGetUserInfo } from "../../hooks/useGetUserInfo";
+import { useGetTransaction } from "../hooks/useGetTransaction";
+import { useGetUserInfo } from "../hooks/useGetUserInfo";
 import { signOut } from "firebase/auth";
-import { auth } from "../../config/firebase-config";
+import { auth } from "../config/firebase-config";
 import { useNavigate } from "react-router-dom";
-import TransactionChart from "../../components/TransactionChart";
+import TransactionChart from "../components/TransactionChart";
 
 const ExpenseTracker = () => {
   const { addTransaction } = useAddTransactions();
