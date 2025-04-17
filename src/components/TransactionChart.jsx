@@ -11,9 +11,10 @@ import {
 const COLORS = ["#22c55e", "#ef4444"]; // green for income, red for expense
 
 const TransactionChart = ({ income, expense }) => {
-  // Calculate percentages
-  const expensePercentage = income > 0 ? (expense / income) * 100 : 0;
-  const incomePercentage = 100 - expensePercentage;
+  // Calculate percentages based on the total (income + expense)
+  const total = income + expense;
+  const incomePercentage = total > 0 ? (income / total) * 100 : 0;
+  const expensePercentage = total > 0 ? (expense / total) * 100 : 0;
 
   const data = [
     { name: "Income", value: incomePercentage },
@@ -32,6 +33,7 @@ const TransactionChart = ({ income, expense }) => {
             labelLine={false}
             outerRadius={60}
             dataKey="value"
+            nameKey="name"
             label={({ percent, name }) =>
               `${name} (${(percent * 100).toFixed(0)}%)`
             }
@@ -43,7 +45,7 @@ const TransactionChart = ({ income, expense }) => {
               />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip formatter={(value) => `${value.toFixed(2)}%`} />
           <Legend
             wrapperStyle={{
               maxWidth: "100%",
