@@ -1,10 +1,15 @@
 import React from "react";
 import { auth, provider } from "../config/firebase-config";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../config/firebase-config";
 
-const Auth = () => {
+const Login = () => {
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = React.useState(null);
+
+  // Google Auth
 
   const signInWithGoogle = async () => {
     try {
@@ -24,7 +29,44 @@ const Auth = () => {
     }
   };
 
-  const handleLogin = () => {};
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    const formData = new FormData(e.target);
+    const email = formData.get("email");
+    const password = formData.get("password");
+
+    try {
+      const results = await signInWithEmailAndPassword(auth, email, password);
+
+      const userDocRef = doc(db, "users", results.user.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      let name = results.user.displayName || "User";
+      let imageURL = "";
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        name = `${userData.firstName} ${userData.lastName}`;
+        imageURL = userData.imageURL;
+      }
+
+      const authInfo = {
+        userId: results.user.uid,
+        name,
+        email: results.user.email,
+        isloggedIn: true,
+        profilePhoto: imageURL,
+      };
+
+      localStorage.setItem("auth", JSON.stringify(authInfo));
+      navigate("/expense-tracker");
+    } catch (error) {
+      console.error("Login failed", error);
+      setErrorMessage("Invalid email or password");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex items-center justify-center">
@@ -40,6 +82,7 @@ const Auth = () => {
               Email
             </label>
             <input
+              name="email"
               type="email"
               placeholder="Enter your email"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -51,10 +94,20 @@ const Auth = () => {
               Password
             </label>
             <input
+              name="password"
               type="password"
               placeholder="Enter your password"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
+          </div>
+
+          {/* Error Message */}
+          <div
+            className={`bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-md text-sm mt-2 ${
+              errorMessage === null ? "hidden" : ""
+            } `}
+          >
+            <p>{errorMessage}</p>
           </div>
 
           <button
@@ -91,4 +144,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default Login;

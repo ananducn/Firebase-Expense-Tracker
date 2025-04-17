@@ -8,16 +8,20 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#22c55e", "#ef4444"]; // green and red
+const COLORS = ["#22c55e", "#ef4444"]; // green for income, red for expense
 
 const TransactionChart = ({ income, expense }) => {
+  // Calculate percentages
+  const expensePercentage = income > 0 ? (expense / income) * 100 : 0;
+  const incomePercentage = 100 - expensePercentage;
+
   const data = [
-    { name: "Income", value: income },
-    { name: "Expense", value: expense },
+    { name: "Income", value: incomePercentage },
+    { name: "Expense", value: expensePercentage },
   ];
 
   return (
-    <div className="h-64 bg-white rounded-xl shadow-xl overflow-hidden p-10">
+    <div className="h-72 bg-white rounded-xl shadow-xl overflow-hidden p-8">
       <h2 className="text-sm font-semibold text-center mb-2">Overview</h2>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
@@ -28,7 +32,9 @@ const TransactionChart = ({ income, expense }) => {
             labelLine={false}
             outerRadius={60}
             dataKey="value"
-            label={({ percent }) => ` (${(percent * 100).toFixed(0)}%)`}
+            label={({ percent, name }) =>
+              `${name} (${(percent * 100).toFixed(0)}%)`
+            }
           >
             {data.map((entry, index) => (
               <Cell

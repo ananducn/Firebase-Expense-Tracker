@@ -8,8 +8,10 @@ import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase-config";
 import { useNavigate } from "react-router-dom";
 import TransactionChart from "../components/TransactionChart";
+import useDeleteDocument from "../hooks/useDeleteDocument";
+import useUpdateDocument from "../hooks/useUpdateDocument";
 
-const ExpenseTracker = () => {
+function ExpenseTracker() {
   const { addTransaction } = useAddTransactions();
   const [description, setDescription] = useState("");
   const [transactionAmount, setTransactionAmount] = useState("");
@@ -19,6 +21,13 @@ const ExpenseTracker = () => {
   const month = new Date().toLocaleString("default", { month: "long" });
   const [selectedMonth, setSelectedMonth] = useState(month);
   const { transactions } = useGetTransaction(selectedMonth);
+  const { deleteDocument, loading: deleteLoading } = useDeleteDocument();
+  const { updateDocument, loading } = useUpdateDocument();
+
+  const [newDescription, setNewDescription] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+  const [newType, setNewType] = useState("expense");
+  const [TransactionId, setTransactionId] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -50,24 +59,48 @@ const ExpenseTracker = () => {
 
   const totalBalance = totalIncome - totalExpense;
 
+  const handleDelete = async (id) => {
+    try {
+      await deleteDocument("transactions", id);
+      toast.success("Transaction deleted");
+    } catch (error) {
+      toast.error("Failed to delete transaction");
+      console.log("error", error);
+    }
+  };
+
+  const handleUpdate = (id, description, amount, type) => {
+    setTransactionId(id);
+    setNewDescription(description);
+    setNewAmount(amount);
+    setNewType(type);
+  };
+
+  const handleSubmit = async () => {
+    await updateDocument("transactions", TransactionId, {
+      description: newDescription,
+      transactionAmount: newAmount,
+      transactionType: newType,
+    });
+    toast.success("Transaction updated");
+    setTransactionId("");
+    setNewDescription("");
+    setNewAmount("");
+    setNewType("expense");
+  };
+
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-      />
+      <ToastContainer position="top-right" autoClose={2000} />
 
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto md:h-[calc(100vh-3rem)]">
           {/* Left Section */}
           <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 order-2  lg:order-1 flex flex-col">
-            {/* Chart on Top */}
-            <div className="mb-6">
+            <div className="mb-3">
               <TransactionChart income={totalIncome} expense={totalExpense} />
             </div>
 
-            {/* Transaction List (Scrollable) */}
             <div className="flex-1 overflow-y-auto max-h-[400px] pr-2">
               <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
                 Transactions History
@@ -78,35 +111,131 @@ const ExpenseTracker = () => {
                 </p>
               ) : (
                 <ul className="space-y-4">
-                  {transactions.map((transaction, index) => {
-                    const { description, transactionAmount, transactionType } =
-                      transaction;
+                  {transactions.map((transaction) => {
+                    const {
+                      id,
+                      description,
+                      transactionAmount,
+                      transactionType,
+                    } = transaction;
+
+                    // Check if the current transaction is the one being edited.
+                    // So if the id is same it gives true, else it is false.
+                    const isEditing = TransactionId === id;
+
                     return (
                       <li
-                        key={index}
+                        key={id}
                         className={`flex justify-between items-center p-4 rounded-xl shadow-sm ${
                           transactionType === "income"
                             ? "bg-green-50"
                             : "bg-red-50"
                         }`}
                       >
-                        <div>
-                          <h4 className="font-semibold text-gray-800">
-                            {description}
-                          </h4>
-                          <p className="text-sm text-gray-600 capitalize">
-                            {transactionType}
-                          </p>
+                        {isEditing ? (
+                          <div className="flex flex-col gap-2 w-full">
+                            <input
+                              type="text"
+                              value={newDescription}
+                              onChange={(e) =>
+                                setNewDescription(e.target.value)
+                              }
+                              className="w-[90%] px-3 py-1 border rounded"
+                              placeholder="Description"
+                            />
+                            <input
+                              type="number"
+                              value={newAmount}
+                              onChange={(e) => setNewAmount(e.target.value)}
+                              className="w-[90%] px-3 py-1 border rounded"
+                              placeholder="Amount"
+                            />
+                            <select
+                              value={newType}
+                              onChange={(e) => setNewType(e.target.value)}
+                              className="w-[90%] px-3 py-2 border rounded"
+                            >
+                              <option value="income">Income</option>
+                              <option value="expense">Expense</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <div>
+                            <h4 className="font-semibold text-gray-800">
+                              {description}
+                            </h4>
+                            <p className="text-sm text-gray-600 capitalize">
+                              {transactionType}
+                            </p>
+                          </div>
+                        )}
+
+                        {!isEditing && (
+                          <span
+                            className={`text-lg font-bold ${
+                              transactionType === "income"
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            ₹{transactionAmount}
+                          </span>
+                        )}
+
+                        <div className="flex items-center space-x-4 sm:space-x-6 md:space-x-8">
+                          {isEditing ? (
+                            <>
+                              <button
+                                onClick={handleSubmit}
+                                className="text-green-600 text-xl"
+                                title="Save"
+                              >
+                                ✅
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setTransactionId("");
+                                  setNewDescription("");
+                                  setNewAmount("");
+                                  setNewType("expense");
+                                }}
+                                className="text-gray-600 text-xl"
+                                title="Cancel"
+                              >
+                                ❌
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleUpdate(
+                                    id,
+                                    description,
+                                    transactionAmount,
+                                    transactionType
+                                  )
+                                }
+                                className="text-blue-600 hover:text-blue-800 text-xl"
+                                title="Edit"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => handleDelete(id)}
+                                disabled={deleteLoading}
+                                className={`text-xl ${
+                                  deleteLoading
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : "text-red-600 hover:text-red-800"
+                                }`}
+                                title="Delete"
+                              >
+                                {deleteLoading ? "⌛" : "🗑️"}
+                              </button>
+                            </>
+                          )}
                         </div>
-                        <span
-                          className={`text-lg font-bold ${
-                            transactionType === "income"
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          ₹{transactionAmount}
-                        </span>
                       </li>
                     );
                   })}
@@ -115,15 +244,17 @@ const ExpenseTracker = () => {
             </div>
           </div>
 
-          {/* Right Section: Form and Summary */}
+          {/* Right Section */}
           <div className="flex-1 bg-white shadow-2xl rounded-2xl p-6 h-full flex flex-col order-1 lg:order-2">
-            {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
                 <img
-                  src={profilePhoto}
+                  src={
+                    profilePhoto ||
+                    "https://m.media-amazon.com/images/I/51rayl0HnRL.jpg"
+                  }
                   alt="Profile"
-                  className=" w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
                 />
                 <h1 className="text-lg md:text-2xl font-bold text-blue-600">
                   {name}'s Tracker 💰
@@ -137,7 +268,6 @@ const ExpenseTracker = () => {
               </button>
             </div>
 
-            {/* Balance */}
             <div className="mb-6 text-center">
               <h3 className="text-lg text-gray-600">Your Balance</h3>
               <h2 className="text-2xl font-semibold text-green-600">
@@ -145,7 +275,6 @@ const ExpenseTracker = () => {
               </h2>
             </div>
 
-            {/* Month Selection */}
             <div className="mb-6">
               <label className="text-gray-700 font-medium mr-2">
                 Filter by Month:
@@ -176,7 +305,6 @@ const ExpenseTracker = () => {
               </select>
             </div>
 
-            {/* Summary */}
             <div className="grid grid-cols-2 gap-4 mb-10">
               <div className="bg-green-100 p-4 rounded-lg shadow-sm">
                 <h3 className="text-md font-medium text-green-800">Income</h3>
@@ -192,7 +320,6 @@ const ExpenseTracker = () => {
               </div>
             </div>
 
-            {/* Form */}
             <form
               className="bg-gray-50 p-6 rounded-xl shadow-md text-left space-y-4 mt-auto"
               onSubmit={onSubmit}
@@ -272,6 +399,6 @@ const ExpenseTracker = () => {
       </div>
     </>
   );
-};
+}
 
 export default ExpenseTracker;

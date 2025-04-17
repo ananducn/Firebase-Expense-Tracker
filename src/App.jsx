@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Auth from "./pages/Auth.jsx";
+import Auth from "./pages/Login.jsx";
 import ExpenseTracker from "./pages/ExpenseTracker.jsx";
 import RegisterUser from "./pages/RegisterUser.jsx";
 
