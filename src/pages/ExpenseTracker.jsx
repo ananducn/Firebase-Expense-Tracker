@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import TransactionChart from "../components/TransactionChart";
 import useDeleteDocument from "../hooks/useDeleteDocument";
 import useUpdateDocument from "../hooks/useUpdateDocument";
+import { downloadCSV } from "../utils/downloadCSV";
+import { downloadPDF } from "../utils/downloadPDF";
 
 function ExpenseTracker() {
   const { addTransaction } = useAddTransactions();
@@ -96,15 +98,35 @@ function ExpenseTracker() {
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="flex flex-col lg:flex-row gap-6 max-w-[1440px] mx-auto md:h-[calc(100vh-3rem)]">
           {/* Left Section */}
-          <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 order-2  lg:order-1 flex flex-col">
+          <div className="md:flex-1 bg-white shadow-2xl rounded-2xl p-6 order-2 lg:order-1 flex flex-col">
             <div className="mb-3">
               <TransactionChart income={totalIncome} expense={totalExpense} />
             </div>
 
-            <div className="flex-1 overflow-y-auto max-h-[400px] pr-2">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+            {/* Header + Export */}
+            <div className=" flex flex-col sm:flex sm:flex-row justify-between items-center sticky top-0 z-10 bg-white py-2 sm:p-4">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 text-center mb-2">
                 Transactions History
               </h3>
+
+              <div className="flex justify-between text-sm">
+                <button
+                  onClick={() => downloadCSV(transactions)}
+                  className="px-1 py-0.5 sm:px-4 sm:py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200"
+                >
+                  Download CSV
+                </button>
+                <button
+                  onClick={() => downloadPDF(transactions)}
+                  className="px-1 py-0.5 sm:px-4 sm:py-2 bg-red-500 text-white rounded ml-2 hover:bg-red-600 transition duration-200"
+                >
+                  Download PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable transaction list */}
+            <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 mt-2">
               {transactions.length === 0 ? (
                 <p className="text-gray-500 text-center">
                   No transactions yet.
@@ -119,8 +141,6 @@ function ExpenseTracker() {
                       transactionType,
                     } = transaction;
 
-                    // Check if the current transaction is the one being edited.
-                    // So if the id is same it gives true, else it is false.
                     const isEditing = TransactionId === id;
 
                     return (
@@ -182,7 +202,7 @@ function ExpenseTracker() {
                           </span>
                         )}
 
-                        <div className="flex items-center space-x-4 sm:space-x-6 md:space-x-8">
+                        <div className="flex items-center space-x-4">
                           {isEditing ? (
                             <>
                               <button
